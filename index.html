@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Water Game Ultimate</title>
+<title>물마시기</title>
 
 <style>
 body {
@@ -13,9 +13,12 @@ body {
 
 /* 카드 */
 .card {
-  width: 180px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
   padding: 15px;
-  border-radius: 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(200, 200, 200, 0.6);
   text-align: center;
   position: relative;
 }
@@ -24,18 +27,57 @@ body {
 @media (prefers-color-scheme: light) {
   .card {
     background: rgba(0,0,0,0.05);
-    color: #222;
+    color: #2563eb;
   }
 }
 @media (prefers-color-scheme: dark) {
   .card {
     background: rgba(255,255,255,0.08);
-    color: white;
+    color: #60a5fa;
   }
 }
 
-.title { font-size: 13px; opacity: 0.7; }
-.level { font-size: 12px; margin-top: 5px; }
+/* 제목 */
+.title {
+  font-size: 14px;
+  font-weight: bold;
+  opacity: 0.9;
+}
+
+.level {
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+/* 목표 */
+.goal-wrap {
+  margin: 10px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.goal-label {
+  color: gray;
+  font-size: 14px;
+}
+
+/* input */
+input {
+  width: 55px;
+  border: none;
+  border-radius: 8px;
+  padding: 3px;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* spinner 유지 */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  opacity: 1;
+}
 
 /* 컵 */
 .cup {
@@ -44,11 +86,11 @@ body {
   margin: 10px auto;
   border-radius: 10px;
   overflow: hidden;
-  background: rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.1);
   position: relative;
 }
 
-/* 💧 물 + 출렁 애니메이션 */
+/* 물 */
 .water {
   position: absolute;
   bottom: 0;
@@ -56,61 +98,75 @@ body {
   height: 0%;
   background: linear-gradient(#38bdf8, #3b82f6);
   transition: height 0.5s ease;
-  overflow: hidden;
 }
 
+/* wave */
 .wave {
   position: absolute;
   width: 200%;
   height: 100%;
   top: -10px;
   left: -50%;
-  background: rgba(255,255,255,0.3);
-  opacity: 0.3;
+  background: rgba(255,255,255,0.4);
+  opacity: 0.4;
   border-radius: 40%;
   animation: wave 3s infinite linear;
 }
 
 @keyframes wave {
-  0% { transform: translateX(0) rotate(0); }
-  100% { transform: translateX(-50%) rotate(360deg); }
+  to { transform: translateX(-50%) rotate(360deg); }
 }
 
-.count { font-size: 20px; margin: 5px; }
-
-input {
-  width: 50px;
-  border: none;
-  border-radius: 8px;
-  padding: 3px;
-  text-align: center;
+.count {
+  font-size: 20px;
+  margin: 5px;
 }
 
+/* ✅ 버튼 한 줄 정렬 */
+.btns {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* 버튼 스타일 */
 .btns button {
   border: none;
-  border-radius: 8px;
-  padding: 5px 7px;
-  margin: 3px;
-  font-size: 12px;
+  border-radius: 10px;
+  height: 40px;
+  min-width: 80px;
+  font-size: 16px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ml 텍스트 */
+.ml {
+  font-size: 10px;
+  opacity: 0.7;
+  margin-left: 3px;
 }
 
 @media (prefers-color-scheme: light) {
-  .btns button { background: rgba(0,0,0,0.1); }
+  .btns button {
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+  }
 }
 @media (prefers-color-scheme: dark) {
   .btns button {
-    background: rgba(255,255,255,0.2);
-    color: white;
+    background: rgba(96,165,250,0.2);
+    color: #60a5fa;
   }
 }
 
-/* 🎉 폭죽 */
+/* 폭죽 */
 .confetti {
   position: absolute;
   width: 5px;
   height: 5px;
-  background: red;
   top: 50%;
   left: 50%;
   animation: explode 1s ease-out forwards;
@@ -128,8 +184,13 @@ input {
 <body>
 
 <div class="card" id="card">
-  <div class="title">💧 Water Game</div>
+  <div class="title">💧 물마시기</div>
   <div class="level" id="level">Lv.1 초보 수분러</div>
+
+  <div class="goal-wrap">
+    <span class="goal-label">목표</span>
+    <input id="goal" type="number" min="1">
+  </div>
 
   <div class="cup">
     <div class="water" id="water">
@@ -139,10 +200,10 @@ input {
 
   <div class="count" id="count">0 / 8</div>
 
-  목표 <input id="goal" type="number" min="1">
-
   <div class="btns">
-    <button onclick="add()">+1</button>
+    <button onclick="add()">
+      +1잔 <span class="ml">(250ml)</span>
+    </button>
     <button onclick="reset()">↺</button>
   </div>
 </div>
@@ -161,14 +222,14 @@ if (localStorage.getItem(DATE_KEY) !== today) {
   localStorage.setItem(COUNT_KEY, 0);
 }
 
-// 로딩
+// 데이터
 let count = Number(localStorage.getItem(COUNT_KEY)) || 0;
 let goal = Number(localStorage.getItem(GOAL_KEY)) || 8;
 let level = Number(localStorage.getItem(LEVEL_KEY)) || 1;
 
 document.getElementById("goal").value = goal;
 
-// 🎵 효과음
+// ✅ 효과음
 function playSound() {
   const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
   audio.play();
@@ -182,21 +243,16 @@ function getLevelName(lv) {
   return "수분 마스터 👑";
 }
 
-// 🎉 폭죽
+// 폭죽
 function confetti() {
   const card = document.getElementById("card");
-
   for (let i = 0; i < 20; i++) {
     let c = document.createElement("div");
     c.className = "confetti";
-
-    c.style.setProperty("--x", (Math.random()*200-100) + "px");
-    c.style.setProperty("--y", (Math.random()*200-100) + "px");
-
+    c.style.setProperty("--x", (Math.random()*200-100)+"px");
+    c.style.setProperty("--y", (Math.random()*200-100)+"px");
     c.style.background = `hsl(${Math.random()*360},100%,50%)`;
-
     card.appendChild(c);
-
     setTimeout(() => c.remove(), 1000);
   }
 }
