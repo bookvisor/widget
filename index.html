@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Water Widget</title>
+
 <style>
 body {
   margin: 0;
@@ -44,6 +50,7 @@ input {
   margin-bottom: 8px;
 }
 
+/* ✅ 버튼 기본 */
 .btns button {
   border: none;
   border-radius: 8px;
@@ -55,7 +62,7 @@ input {
   color: inherit;
 }
 
-/* 다크모드 버튼 */
+/* ✅ 버튼 다크 */
 @media (prefers-color-scheme: dark) {
   .btns button {
     background: rgba(255,255,255,0.2);
@@ -71,7 +78,7 @@ input {
   overflow: hidden;
 }
 
-/* 다크모드 바 */
+/* ✅ 바 다크 */
 @media (prefers-color-scheme: dark) {
   .bar {
     background: rgba(255,255,255,0.15);
@@ -85,3 +92,81 @@ input {
   transition: 0.3s;
 }
 </style>
+</head>
+
+<body>
+
+<div class="card">
+  <div class="title">💧 Water</div>
+  <div class="count" id="count">0 / 8</div>
+
+  목표 <input id="goal" type="number" min="1">
+
+  <div class="btns">
+    <button onclick="add()">+1</button>
+    <button onclick="reset()">↺</button>
+  </div>
+
+  <div class="bar">
+    <div class="fill" id="fill"></div>
+  </div>
+</div>
+
+<script>
+// ✅ 저장 키
+const COUNT_KEY = "water_count";
+const GOAL_KEY = "water_goal";
+const DATE_KEY = "water_date";
+
+// ✅ 오늘 날짜 확인 (자동 초기화)
+const today = new Date().toLocaleDateString();
+const savedDate = localStorage.getItem(DATE_KEY);
+
+if (savedDate !== today) {
+  localStorage.setItem(DATE_KEY, today);
+  localStorage.setItem(COUNT_KEY, 0);
+}
+
+// ✅ 데이터 불러오기
+let count = Number(localStorage.getItem(COUNT_KEY)) || 0;
+let goal = Number(localStorage.getItem(GOAL_KEY)) || 8;
+
+document.getElementById("goal").value = goal;
+
+// ✅ 버튼 기능
+function add() {
+  count++;
+  save();
+  update();
+}
+
+function reset() {
+  count = 0;
+  save();
+  update();
+}
+
+// ✅ 저장
+function save() {
+  localStorage.setItem(COUNT_KEY, count);
+  localStorage.setItem(GOAL_KEY, document.getElementById("goal").value);
+}
+
+// ✅ 화면 업데이트
+function update() {
+  goal = Number(document.getElementById("goal").value);
+  document.getElementById("count").innerText = count + " / " + goal;
+
+  let percent = Math.min((count / goal) * 100, 100);
+  document.getElementById("fill").style.width = percent + "%";
+}
+
+// 목표 변경 저장
+document.getElementById("goal").addEventListener("input", save);
+
+// 초기 실행
+update();
+</script>
+
+</body>
+</html>
