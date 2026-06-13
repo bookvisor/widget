@@ -20,6 +20,7 @@ body {
   padding: 15px;
   text-align: center;
   backdrop-filter: blur(10px);
+  position: relative;
 }
 
 /* 제목 */
@@ -41,13 +42,12 @@ body {
   gap: 5px;
 }
 
-/* ✅ 목표 글자 (회색) */
 .goal-label {
   font-size: 14px;
   color: gray;
 }
 
-/* ✅ 목표 숫자 (굵게 + 회색) */
+/* input */
 input {
   width: 55px;
   border-radius: 8px;
@@ -55,10 +55,10 @@ input {
   text-align: center;
   font-size: 14px;
   color: gray;
-  font-weight: bold; /* ✅ 추가 */
+  font-weight: bold;
 }
 
-/* spinner 표시 */
+/* spinner */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   opacity: 1;
@@ -120,10 +120,10 @@ input::-webkit-inner-spin-button {
   to { transform: translateX(-50%) rotate(360deg); }
 }
 
-/* ✅ 카운트 숫자 굵게 */
+/* 카운트 */
 .count {
   font-size: 20px;
-  font-weight: bold; /* ✅ 추가 */
+  font-weight: bold;
 }
 
 /* 버튼 */
@@ -147,12 +147,29 @@ input::-webkit-inner-spin-button {
 .ml {
   font-size: 10px;
 }
+
+/* 🎉 폭죽 */
+.confetti {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  top: 50%;
+  left: 50%;
+  animation: explode 1s ease-out forwards;
+}
+
+@keyframes explode {
+  to {
+    transform: translate(var(--x), var(--y));
+    opacity: 0;
+  }
+}
 </style>
 </head>
 
 <body>
 
-<div class="card">
+<div class="card" id="card">
   <div class="title">💧 물마시기</div>
   <div class="level" id="level">Lv.1 초보 수분러</div>
 
@@ -185,6 +202,29 @@ let level = 1;
 const goalInput = document.getElementById("goal");
 goalInput.value = goal;
 
+/* ✅ 효과음 */
+function playSound() {
+  const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+  audio.play();
+}
+
+/* ✅ 폭죽 */
+function confetti() {
+  const card = document.getElementById("card");
+
+  for (let i = 0; i < 20; i++) {
+    let c = document.createElement("div");
+    c.className = "confetti";
+
+    c.style.setProperty("--x", (Math.random()*200 - 100) + "px");
+    c.style.setProperty("--y", (Math.random()*200 - 100) + "px");
+    c.style.background = `hsl(${Math.random()*360},100%,50%)`;
+
+    card.appendChild(c);
+    setTimeout(() => c.remove(), 1000);
+  }
+}
+
 function getLevelName(lv) {
   if (lv < 3) return "초보 수분러";
   if (lv < 5) return "꾸준한 수분러";
@@ -194,10 +234,14 @@ function getLevelName(lv) {
 
 function add() {
   count++;
+
   if (count >= goal) {
     count = goal;
     level++;
+    playSound();   // ✅ 효과음
+    confetti();    // ✅ 폭죽
   }
+
   update();
 }
 
@@ -220,7 +264,6 @@ function update() {
 }
 
 goalInput.addEventListener("input", update);
-
 update();
 </script>
 
