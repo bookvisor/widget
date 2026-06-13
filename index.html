@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>Water Widget</title>
+<title>Water Game Ultimate</title>
 
 <style>
 body {
@@ -11,18 +11,22 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* ✅ 기본 (라이트 모드) */
+/* 카드 */
 .card {
   width: 180px;
   padding: 15px;
   border-radius: 20px;
-  background: rgba(0,0,0,0.05);
-  backdrop-filter: blur(12px);
-  color: #222;
   text-align: center;
+  position: relative;
 }
 
-/* ✅ 다크 모드 자동 적용 */
+/* 테마 */
+@media (prefers-color-scheme: light) {
+  .card {
+    background: rgba(0,0,0,0.05);
+    color: #222;
+  }
+}
 @media (prefers-color-scheme: dark) {
   .card {
     background: rgba(255,255,255,0.08);
@@ -30,16 +34,49 @@ body {
   }
 }
 
-.title {
-  font-size: 13px;
-  opacity: 0.7;
+.title { font-size: 13px; opacity: 0.7; }
+.level { font-size: 12px; margin-top: 5px; }
+
+/* 컵 */
+.cup {
+  width: 60px;
+  height: 80px;
+  margin: 10px auto;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.1);
+  position: relative;
 }
 
-.count {
-  font-size: 24px;
-  margin: 8px 0;
-  font-weight: bold;
+/* 💧 물 + 출렁 애니메이션 */
+.water {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(#38bdf8, #3b82f6);
+  transition: height 0.5s ease;
+  overflow: hidden;
 }
+
+.wave {
+  position: absolute;
+  width: 200%;
+  height: 100%;
+  top: -10px;
+  left: -50%;
+  background: rgba(255,255,255,0.3);
+  opacity: 0.3;
+  border-radius: 40%;
+  animation: wave 3s infinite linear;
+}
+
+@keyframes wave {
+  0% { transform: translateX(0) rotate(0); }
+  100% { transform: translateX(-50%) rotate(360deg); }
+}
+
+.count { font-size: 20px; margin: 5px; }
 
 input {
   width: 50px;
@@ -47,22 +84,20 @@ input {
   border-radius: 8px;
   padding: 3px;
   text-align: center;
-  margin-bottom: 8px;
 }
 
-/* ✅ 버튼 기본 */
 .btns button {
   border: none;
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 5px 7px;
   margin: 3px;
-  cursor: pointer;
   font-size: 12px;
-  background: rgba(0,0,0,0.1);
-  color: inherit;
+  cursor: pointer;
 }
 
-/* ✅ 버튼 다크 */
+@media (prefers-color-scheme: light) {
+  .btns button { background: rgba(0,0,0,0.1); }
+}
 @media (prefers-color-scheme: dark) {
   .btns button {
     background: rgba(255,255,255,0.2);
@@ -70,34 +105,38 @@ input {
   }
 }
 
-.bar {
-  height: 6px;
-  background: rgba(0,0,0,0.1);
-  border-radius: 10px;
-  margin-top: 8px;
-  overflow: hidden;
+/* 🎉 폭죽 */
+.confetti {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: red;
+  top: 50%;
+  left: 50%;
+  animation: explode 1s ease-out forwards;
 }
 
-/* ✅ 바 다크 */
-@media (prefers-color-scheme: dark) {
-  .bar {
-    background: rgba(255,255,255,0.15);
+@keyframes explode {
+  to {
+    transform: translate(var(--x), var(--y));
+    opacity: 0;
   }
-}
-
-.fill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #38bdf8, #3b82f6);
-  transition: 0.3s;
 }
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <div class="title">💧 Water</div>
+<div class="card" id="card">
+  <div class="title">💧 Water Game</div>
+  <div class="level" id="level">Lv.1 초보 수분러</div>
+
+  <div class="cup">
+    <div class="water" id="water">
+      <div class="wave"></div>
+    </div>
+  </div>
+
   <div class="count" id="count">0 / 8</div>
 
   목표 <input id="goal" type="number" min="1">
@@ -106,36 +145,73 @@ input {
     <button onclick="add()">+1</button>
     <button onclick="reset()">↺</button>
   </div>
-
-  <div class="bar">
-    <div class="fill" id="fill"></div>
-  </div>
 </div>
 
 <script>
-// ✅ 저장 키
+// 저장 키
 const COUNT_KEY = "water_count";
 const GOAL_KEY = "water_goal";
 const DATE_KEY = "water_date";
+const LEVEL_KEY = "water_level";
 
-// ✅ 오늘 날짜 확인 (자동 초기화)
+// 날짜 초기화
 const today = new Date().toLocaleDateString();
-const savedDate = localStorage.getItem(DATE_KEY);
-
-if (savedDate !== today) {
+if (localStorage.getItem(DATE_KEY) !== today) {
   localStorage.setItem(DATE_KEY, today);
   localStorage.setItem(COUNT_KEY, 0);
 }
 
-// ✅ 데이터 불러오기
+// 로딩
 let count = Number(localStorage.getItem(COUNT_KEY)) || 0;
 let goal = Number(localStorage.getItem(GOAL_KEY)) || 8;
+let level = Number(localStorage.getItem(LEVEL_KEY)) || 1;
 
 document.getElementById("goal").value = goal;
 
-// ✅ 버튼 기능
+// 🎵 효과음
+function playSound() {
+  const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+  audio.play();
+}
+
+// 레벨 이름
+function getLevelName(lv) {
+  if (lv < 3) return "초보 수분러";
+  if (lv < 5) return "꾸준한 수분러";
+  if (lv < 10) return "프로 수분러";
+  return "수분 마스터 👑";
+}
+
+// 🎉 폭죽
+function confetti() {
+  const card = document.getElementById("card");
+
+  for (let i = 0; i < 20; i++) {
+    let c = document.createElement("div");
+    c.className = "confetti";
+
+    c.style.setProperty("--x", (Math.random()*200-100) + "px");
+    c.style.setProperty("--y", (Math.random()*200-100) + "px");
+
+    c.style.background = `hsl(${Math.random()*360},100%,50%)`;
+
+    card.appendChild(c);
+
+    setTimeout(() => c.remove(), 1000);
+  }
+}
+
+// 기능
 function add() {
   count++;
+
+  if (count >= goal) {
+    count = goal;
+    level++;
+    playSound();
+    confetti();
+  }
+
   save();
   update();
 }
@@ -146,25 +222,27 @@ function reset() {
   update();
 }
 
-// ✅ 저장
+// 저장
 function save() {
   localStorage.setItem(COUNT_KEY, count);
   localStorage.setItem(GOAL_KEY, document.getElementById("goal").value);
+  localStorage.setItem(LEVEL_KEY, level);
 }
 
-// ✅ 화면 업데이트
+// 업데이트
 function update() {
   goal = Number(document.getElementById("goal").value);
+
   document.getElementById("count").innerText = count + " / " + goal;
+  document.getElementById("level").innerText =
+    "Lv." + level + " " + getLevelName(level);
 
   let percent = Math.min((count / goal) * 100, 100);
-  document.getElementById("fill").style.width = percent + "%";
+  document.getElementById("water").style.height = percent + "%";
 }
 
-// 목표 변경 저장
 document.getElementById("goal").addEventListener("input", save);
 
-// 초기 실행
 update();
 </script>
 
