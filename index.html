@@ -17,8 +17,6 @@ body {
   max-width: 400px;
   margin: 0 auto;
   padding: 15px;
-  /*border-radius: 10px;
-  border: 1px solid rgba(200, 200, 200, 0.6);*/
   text-align: center;
   position: relative;
   backdrop-filter: blur(10px);
@@ -42,7 +40,6 @@ body {
 .title {
   font-size: 14px;
   font-weight: bold;
-  opacity: 0.9;
 }
 
 .level {
@@ -55,7 +52,6 @@ body {
   margin: 10px 0;
   display: flex;
   justify-content: center;
-  align-items: center;
   gap: 5px;
 }
 
@@ -64,103 +60,100 @@ body {
   font-size: 14px;
 }
 
-/* input */
 input {
   width: 55px;
-  border: none;
   border-radius: 8px;
-  padding: 3px;
+  border: none;
   text-align: center;
-  font-size: 14px;
 }
 
-/* spinner 유지 */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  opacity: 1;
-}
-
-/* 컵 */
+/* ✅ 텀블러 느낌 */
 .cup {
-  width: 60px;
-  height: 80px;
+  width: 70px;
+  height: 110px;
   margin: 10px auto;
-  border-radius: 10px;
+  border-radius: 25px 25px 15px 15px;
   overflow: hidden;
   background: rgba(0,0,0,0.1);
   position: relative;
 }
 
-/* 물 */
+/* ✅ 물 */
 .water {
   position: absolute;
   bottom: 0;
-  width: 100%;
+  width: 200%;
+  left: -50%;
   height: 0%;
-  background: linear-gradient(#38bdf8, #3b82f6);
+  background: linear-gradient(#38bdf8, #2563eb);
+  overflow: hidden;
   transition: height 0.5s ease;
 }
 
-/* wave */
+/* ✅ wave 공통 */
 .wave {
   position: absolute;
   width: 200%;
-  height: 100%;
-  top: -10px;
+  height: 200%;     /* ✅ 크게 */
+  top: -50%;        /* ✅ 위로 올림 (핵심) */
   left: -50%;
-  background: rgba(255,255,255,0.4);
-  opacity: 0.4;
-  border-radius: 40%;
-  animation: wave 3s infinite linear;
+  border-radius: 45%;
 }
 
-@keyframes wave {
-  to { transform: translateX(-50%) rotate(360deg); }
+/* ✅ 3중 물결 */
+.w1 {
+  background: rgba(255,255,255,0.35);
+  animation: waveA 3s linear infinite;
+}
+
+.w2 {
+  background: rgba(255,255,255,0.25);
+  animation: waveB 5s linear infinite;
+}
+
+.w3 {
+  background: rgba(255,255,255,0.15);
+  animation: waveC 7s linear infinite;
+}
+
+/* ✅ 자연스러운 흐름 */
+@keyframes waveA {
+  0% { transform: translateX(0) rotate(0deg); }
+  100% { transform: translateX(-50%) rotate(360deg); }
+}
+
+@keyframes waveB {
+  0% { transform: translateX(0) rotate(0deg); }
+  100% { transform: translateX(-50%) rotate(-360deg); }
+}
+
+@keyframes waveC {
+  0% { transform: translateX(0) rotate(0deg); }
+  100% { transform: translateX(-50%) rotate(360deg); }
 }
 
 .count {
   font-size: 20px;
-  margin: 5px;
 }
 
-/* ✅ 버튼 한 줄 정렬 */
+/* 버튼 */
 .btns {
   display: flex;
   justify-content: center;
   gap: 8px;
 }
 
-/* 버튼 스타일 */
 .btns button {
   border: none;
   border-radius: 10px;
   height: 40px;
-  min-width: 80px;
-  font-size: 16px;
+  min-width: 90px;
+  font-size: 15px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-/* ml 텍스트 */
 .ml {
   font-size: 10px;
-  opacity: 0.7;
-  margin-left: 3px;
-}
-
-@media (prefers-color-scheme: light) {
-  .btns button {
-    background: rgba(37, 99, 235, 0.1);
-    color: #2563eb;
-  }
-}
-@media (prefers-color-scheme: dark) {
-  .btns button {
-    background: rgba(96,165,250,0.2);
-    color: #60a5fa;
-  }
 }
 
 /* 폭죽 */
@@ -170,7 +163,7 @@ input::-webkit-inner-spin-button {
   height: 5px;
   top: 50%;
   left: 50%;
-  animation: explode 1s ease-out forwards;
+  animation: explode 1s forwards;
 }
 
 @keyframes explode {
@@ -189,54 +182,49 @@ input::-webkit-inner-spin-button {
   <div class="level" id="level">Lv.1 초보 수분러</div>
 
   <div class="goal-wrap">
-    <span class="goal-label">목표</span>
-    <input id="goal" type="number" min="1">
+    목표 <input id="goal" type="number" min="1">
   </div>
 
   <div class="cup">
     <div class="water" id="water">
-      <div class="wave"></div>
+      <div class="wave w1"></div>
+      <div class="wave w2"></div>
+      <div class="wave w3"></div>
     </div>
   </div>
 
   <div class="count" id="count">0 / 8</div>
 
   <div class="btns">
-    <button onclick="add()">
-      +1잔 <span class="ml">(250ml)</span>
-    </button>
+    <button onclick="add()">+1잔 <span class="ml">(250ml)</span></button>
     <button onclick="reset()">↺</button>
   </div>
 </div>
 
 <script>
-// 저장 키
 const COUNT_KEY = "water_count";
 const GOAL_KEY = "water_goal";
 const DATE_KEY = "water_date";
 const LEVEL_KEY = "water_level";
 
-// 날짜 초기화
 const today = new Date().toLocaleDateString();
 if (localStorage.getItem(DATE_KEY) !== today) {
   localStorage.setItem(DATE_KEY, today);
   localStorage.setItem(COUNT_KEY, 0);
 }
 
-// 데이터
 let count = Number(localStorage.getItem(COUNT_KEY)) || 0;
 let goal = Number(localStorage.getItem(GOAL_KEY)) || 8;
 let level = Number(localStorage.getItem(LEVEL_KEY)) || 1;
 
-document.getElementById("goal").value = goal;
+goalInput = document.getElementById("goal");
+goalInput.value = goal;
 
-// ✅ 효과음
 function playSound() {
   const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
   audio.play();
 }
 
-// 레벨 이름
 function getLevelName(lv) {
   if (lv < 3) return "초보 수분러";
   if (lv < 5) return "꾸준한 수분러";
@@ -244,7 +232,6 @@ function getLevelName(lv) {
   return "수분 마스터 👑";
 }
 
-// 폭죽
 function confetti() {
   const card = document.getElementById("card");
   for (let i = 0; i < 20; i++) {
@@ -258,7 +245,6 @@ function confetti() {
   }
 }
 
-// 기능
 function add() {
   count++;
 
@@ -279,16 +265,14 @@ function reset() {
   update();
 }
 
-// 저장
 function save() {
   localStorage.setItem(COUNT_KEY, count);
-  localStorage.setItem(GOAL_KEY, document.getElementById("goal").value);
+  localStorage.setItem(GOAL_KEY, goalInput.value);
   localStorage.setItem(LEVEL_KEY, level);
 }
 
-// 업데이트
 function update() {
-  goal = Number(document.getElementById("goal").value);
+  goal = Number(goalInput.value);
 
   document.getElementById("count").innerText = count + " / " + goal;
   document.getElementById("level").innerText =
@@ -298,8 +282,7 @@ function update() {
   document.getElementById("water").style.height = percent + "%";
 }
 
-document.getElementById("goal").addEventListener("input", save);
-
+goalInput.addEventListener("input", save);
 update();
 </script>
 
